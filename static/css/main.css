@@ -1,0 +1,21 @@
+* {
+	padding: 0;
+	margin: 0;
+	box-sizing: border-box;
+}
+
+input[type='submit'] {
+	background-color: #439946;
+	color: white;
+	border: none;
+	font-size: 16px;
+	padding: 2px 5px;
+}
+
+input[type='text'] {
+	padding: 10px;
+	margin: 5px 0;
+	display: inline-block;
+	border: 1px solid #ccc;
+	font-size: 16px;
+}

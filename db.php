@@ -12,20 +12,40 @@ function get_film($user_input)
   }
   $result = mysqli_query($conn, $sql);
   $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
+  $films = $rows;
 
-  return $rows;
-  /*global $conn;
-  $sql = "";
-  if ($user_input == null) {
-    // $sql = "SELECT * FROM Film";
-    $sql = "SELECT * from Film JOIN Film_Attore as FA on FA.film_id=Film.id JOIN Film_Regista as FR on FR.film_id=Film.id JOIN Film_Genere as FG on FG.film_id=Film.id JOIN Attore as AA on AA.id=FA.attore_id JOIN Regista as RR on RR.id=FR.regista_id GROUP BY Film.titolo;";
-    } else {
-  // $sql = "SELECT * FROM Film WHERE titolo like '%$user_input%'";
-  $sql = "SELECT * from Film JOIN Film_Attore as FA on FA.film_id=Film.id JOIN Film_Regista as FR on FR.film_id=Film.id JOIN Film_Genere as FG on FG.film_id=Film.id JOIN Attore as AA on AA.id=FA.attore_id JOIN Regista as RR on RR.id=FR.regista_id WHERE titolo LIKE '%$user_input%' group by Film.titolo;";
+  // per ogni film, prendo gli attori
+  foreach ($films as $index => $movie) {
+    $films[$index]["Actors"] = [];
+    $films[$index]["Directors"] = [];
+    $sql = "SELECT Attore.id, Attore.nome, Attore.cognome, Attore.data_di_nascita from Film_Attore JOIN Attore ON film_id = '" . $movie["id"] . "' AND attore_id = id";
+    //$sql = "SELECT * FROM Film_Attore WHERE film_id = '$movie["id"]'";
+    $result = mysqli_query($conn, $sql);
+    $coppia = mysqli_fetch_all($result, MYSQLI_ASSOC);
+
+    $sql = "SELECT Regista.* from Regista JOIN Film_Regista ON film_id = '" . $movie["id"] . "' AND regista_id = Regista.id";
+    $result = mysqli_query($conn, $sql);
+    $directors = mysqli_fetch_all($result, MYSQLI_ASSOC);
+
+    $sql = "SELECT nome FROM Genere JOIN Film_Genere ON film_id = '" . $movie["id"] . "' AND genere_id = nome";
+    $result = mysqli_query($conn, $sql);
+    $genres = mysqli_fetch_all($result, MYSQLI_ASSOC);
+
+    // per ogni riga prendo l'id dell'attore
+    foreach ($coppia as $key) {
+      $films[$index]["Actors"] = $coppia;
+      // array_push($films[$index]["Actors"], $coppia);
+    }
+
+    foreach ($directors as $key) {
+      $films[$index]["Directors"] = $directors;
+    }
+
+    foreach ($genres as $key) {
+      $films[$index]["Genres"] = $genres;
+    }
   }
-  $result = mysqli_query($conn, $sql);
-  $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
-  return $rows;*/
+  return $films;
 }
 
 function get_attori($user_input)
@@ -70,6 +90,52 @@ function get_registi($user_input)
   return $rows;
 }
 
+function get_users($user_input)
+{
+  global $conn;
+  $sql = "";
+  if ($user_input == null) {
+    $sql = "SELECT * FROM Utenti";
+  } else {
+    $sql = "SELECT * FROM Utenti WHERE nome like '%$user_input%' OR cognome like '%$user_input%' OR email like '%$user_input%' OR id = '$user_input'";
+  }
+  $result = mysqli_query($conn, $sql);
+  $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
+  return $rows;
+}
+
+function create_user($nome, $cognome, $email, $password)
+{
+  global $conn;
+  $sql = "SELECT * FROM Utenti WHERE email='$email'";
+  $result = mysqli_query($conn, $sql);
+  $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
+  if (count($rows) > 0) {
+    return "Utente già esistente";
+  }
+  $sql = "INSERT INTO Utenti (nome, last_name, email, hashedPSW, reg_date) VALUES ('$nome', '$cognome', '$email', '$password', NOW())";
+  $result = mysqli_query($conn, $sql);
+  return $result;
+}
+
+function get_film_users($user_id)
+{
+  global $conn;
+  $sql = "SELECT * FROM Film_Utente WHERE id_utente = '$user_id'";
+  $result = mysqli_query($conn, $sql);
+  $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
+  return $rows;
+}
+
+function get_film_by_id($movie_id)
+{
+
+  global $conn;
+  $sql = "SELECT * FROM Film WHERE id='$movie_id'";
+  $result = mysqli_query($conn, $sql);
+  $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
+  return $rows;
+}
 
 function get_attori_by_film($film)
 {
